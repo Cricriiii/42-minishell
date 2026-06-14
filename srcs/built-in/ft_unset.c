@@ -1,0 +1,67 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_unset.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgajean <cgajean@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/07 16:17:05 by ihadj             #+#    #+#             */
+/*   Updated: 2025/10/08 12:42:16 by cgajean          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+static int	match_arg(char *entry, char *args)
+{
+	size_t	len;
+
+	if (!entry || !args || !*args)
+		return (0);
+	len = ft_strlen(args);
+	if (ft_strncmp(entry, args, len) != 0)
+		return (0);
+	if (entry[len] == '\0' || entry[len] == '=')
+		return (1);
+	return (0);
+}
+
+static int	should_remove(char *entry, char **args)
+{
+	int	i;
+
+	i = 0;
+	while (args && args[i])
+	{
+		if (match_arg(entry, args[i]))
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+int	ft_unset(t_shell_p shell, char **args)
+{
+	int		i;
+	int		j;
+	int		len;
+	char	**new_env;
+
+	if (!args || !args[0])
+		return (EXIT_SUCCESS);
+	len = get_array_size(shell->environ);
+	new_env = _calloc(shell, (len + 1), sizeof(char *));
+	if (!new_env)
+		return (ERRVAL1);
+	i = 0;
+	j = 0;
+	while (i < len)
+	{
+		if (!should_remove(shell->environ[i], args))
+			new_env[j++] = _strdup(shell, shell->environ[i]);
+		i++;
+	}
+	free_array(shell->environ);
+	shell->environ = new_env;
+	return (EXIT_SUCCESS);
+}
